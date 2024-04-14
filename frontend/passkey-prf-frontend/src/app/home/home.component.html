@@ -1,0 +1,92 @@
+<div class="grid grid-cols-1 h-screen p-5 overflow-auto">
+  <div
+    class="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24"
+  >
+    <div class="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
+      <h2 class="text-3xl font-bold leading-tight text-black sm:text-4xl">
+        Encrypt and Decrypt using PRF key
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Encrypt a string using a PRF key generated from a passkey authentication
+        process. The encrypted string will be saved in the backend, and
+        decryption will be facilitated using the same PRF key generated from the
+        passkey authentication.
+      </p>
+      <form #form="ngForm" (submit)="encrypt(form)" class="mt-4">
+        <div class="flex w-full items-center space-x-2">
+          <textarea
+            appAutoGrow
+            class="flex h-10 resize-y w-full rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-black/30 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            id="userinput"
+            placeholder="Enter a value you want to encrypt"
+            ngModel
+            name="userinput"
+            #userinput="ngModel"
+            required
+            maxlength="256"
+            appCharacterCounterv
+            [maxLength]="256"
+          ></textarea>
+          <button
+            type="submit"
+            [class]="
+              (form.valid
+                ? 'hover:bg-black/80 bg-black '
+                : 'cursor-not-allowed bg-black/80 ') +
+              'rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
+            "
+          >
+            Encrypt
+          </button>
+        </div>
+        <div *ngIf="form.getControl(userinput).value.length > 0">
+          <p class="mt-1 text-xs">
+            Remaining characters: {{ 256 - (userinput.value.length || 0) }}
+          </p>
+        </div>
+        <div
+          *ngIf="userinput.errors?.['required'] && userinput.touched"
+          style="color: red"
+        >
+          <p class="mt-1 text-xs">* This field is required.</p>
+        </div>
+      </form>
+      <div class="flex justify-between items-center mt-4">
+        <p class="text-base font-medium text-gray-800">
+          <b>Encrypted String : </b>
+        </p>
+        <button
+          type="button"
+          [class]="
+            'rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
+          "
+        >
+          Decrypt
+        </button>
+      </div>
+      <div class="mt-4">
+        <p class="text-base font-medium text-gray-800">
+          <b>Decrypted String : </b>
+        </p>
+      </div>
+      <div class="flex gap-2 justify-center items-center mt-6">
+        <button
+          type="button"
+          [class]="
+            'rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
+          "
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          [class]="
+            'rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
+          "
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
