@@ -116,7 +116,7 @@ export class PasswordlessService {
       return {
         ...res,
         //@ts-ignore
-        prfKey: extensionResults.prf.enabled
+        prfKey: extensionResults.prf?.enabled
           ? btoa(
               String.fromCharCode.apply(
                 null,
