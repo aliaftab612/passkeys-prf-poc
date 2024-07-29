@@ -426,6 +426,7 @@ export class PasswordlessService {
       signin.data.allowCredentials?.forEach((cred) => {
         cred.id = this.base64UrlToArrayBuffer(cred.id);
       });
+      signin.data.userVerification = 'required';
 
       //@ts-ignore
       signin.data.extensions = { prf: { eval: {} } };

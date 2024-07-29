@@ -4,6 +4,8 @@ import { environment } from '../../environments/environment';
 import { lastValueFrom } from 'rxjs';
 import { PasswordlessService } from './passwordless.service';
 import { Router } from '@angular/router';
+import { cloneDeep } from 'lodash';
+import { generateAESKeyFromWebAuthnKey } from './../utility/cryptoHelper';
 
 const prf_salt = 'passwordless-login';
 
@@ -23,7 +25,7 @@ type SignupCompleteResponse = {
 })
 export class AuthService {
   private authToken: string | null = null;
-  private prfKey: string | null = null;
+  private encryptionKey: CryptoKey | null = null;
 
   constructor(
     private http: HttpClient,
@@ -35,8 +37,8 @@ export class AuthService {
     return this.authToken !== null ? `${this.authToken}` : null;
   }
 
-  getPrfKey() {
-    return this.prfKey !== null ? `${this.prfKey}` : null;
+  getEncryptionKey() {
+    return this.encryptionKey;
   }
 
   async signup(name: string, email: string) {
@@ -64,7 +66,9 @@ export class AuthService {
         )
       ).auth_token;
 
-      this.prfKey = prfKey;
+      if (prfKey) {
+        this.encryptionKey = await generateAESKeyFromWebAuthnKey(prfKey);
+      }
 
       this.router.navigate(['/home']);
     } catch (err) {
@@ -103,12 +107,20 @@ export class AuthService {
       )
     ).auth_token;
 
-    this.prfKey = prfKey;
+    if (prfKey) {
+      this.encryptionKey = await generateAESKeyFromWebAuthnKey(prfKey);
+    }
 
     this.router.navigate(['/home']);
   }
 
   signupOrSigninAbort() {
     this.passwordless.abort();
+  }
+
+  signOut() {
+    this.authToken = null;
+    this.encryptionKey = null;
+    this.router.navigate(['/login']);
   }
 }
