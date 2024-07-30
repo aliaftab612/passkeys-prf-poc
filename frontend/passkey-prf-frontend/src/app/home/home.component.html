@@ -2,7 +2,30 @@
   <div
     class="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24"
   >
-    <div class="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
+    <div
+      *ngIf="prfNotSupported"
+      class="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md"
+    >
+      <h2 class="text-3xl font-bold leading-tight text-black sm:text-4xl">
+        Your Passkey Authenticator does not support PRF functionality, which is
+        why you cannot use encryption functionality
+      </h2>
+      <div class="flex justify-center items-center">
+        <button
+          type="button"
+          (click)="signOutButtonClick()"
+          [class]="
+            'rounded-md bg-red-500 mt-5 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
+          "
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+    <div
+      *ngIf="!prfNotSupported"
+      class="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md"
+    >
       <h2 class="text-3xl font-bold leading-tight text-black sm:text-4xl">
         Encrypt and Decrypt using PRF key
       </h2>
@@ -12,7 +35,7 @@
         decryption will be facilitated using the same PRF key generated from the
         passkey authentication.
       </p>
-      <form #form="ngForm" (submit)="encrypt(form)" class="mt-4">
+      <form #form="ngForm" (submit)="encrypt()" class="mt-4">
         <div class="flex w-full items-center space-x-2">
           <textarea
             appAutoGrow
@@ -29,6 +52,7 @@
           ></textarea>
           <button
             type="submit"
+            [disabled]="!inputValue"
             [class]="
               (form.valid
                 ? 'hover:bg-black/80 bg-black '
@@ -44,18 +68,12 @@
             Remaining characters: {{ 256 - (userinput.value.length || 0) }}
           </p>
         </div>
-        <div
-          *ngIf="userinput.errors?.['required'] && userinput.touched"
-          style="color: red"
-        >
-          <p class="mt-1 text-xs">* This field is required.</p>
-        </div>
       </form>
       <div
         *ngIf="encryptedString"
-        class="flex justify-between items-center mt-4"
+        class="flex gap-2 justify-between items-center mt-4"
       >
-        <p class="text-base font-medium text-gray-800">
+        <p class="text-base font-medium break-all text-gray-800">
           <b>Encrypted String : {{ encryptedString }}</b>
         </p>
         <button
@@ -70,7 +88,7 @@
         </button>
       </div>
       <div *ngIf="decryptedString" class="mt-4">
-        <p class="text-base font-medium text-gray-800">
+        <p class="text-base font-medium break-all text-gray-800">
           <b>Decrypted String : {{ decryptedString }}</b>
         </p>
       </div>
@@ -78,7 +96,11 @@
         <button
           type="button"
           (click)="resetClick()"
+          [disabled]="!inputValue && !decryptedString"
           [class]="
+            (!inputValue && !decryptedString
+              ? 'cursor-not-allowed bg-black/80 '
+              : 'hover:bg-black/80 bg-black ') +
             'rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
           "
         >
