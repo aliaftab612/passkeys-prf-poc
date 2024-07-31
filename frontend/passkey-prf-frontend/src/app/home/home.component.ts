@@ -4,11 +4,12 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { encryptString, decryptString } from '../utility/cryptoHelper';
 import { DataStorageService } from '../services/data-storage.service';
+import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, NgxSpinnerModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -22,7 +23,8 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private dataStorageService: DataStorageService
+    private dataStorageService: DataStorageService,
+    private ngxSpinnerservice: NgxSpinnerService
   ) {}
 
   ngOnInit() {
@@ -30,30 +32,42 @@ export class HomeComponent implements OnInit {
   }
 
   async initializeData() {
-    if (
-      !this.authService.getEncryptionKey() &&
-      this.authService.getAuthToken()
-    ) {
-      this.prfNotSupported = true;
-      return;
-    }
+    try {
+      if (
+        !this.authService.getEncryptionKey() &&
+        this.authService.getAuthToken()
+      ) {
+        this.prfNotSupported = true;
+        return;
+      }
 
-    this.encryptedString = await this.dataStorageService.getEncryptedString();
+      this.ngxSpinnerservice.show();
+      this.encryptedString = await this.dataStorageService.getEncryptedString();
+      this.ngxSpinnerservice.hide();
+    } catch (err) {
+      this.ngxSpinnerservice.hide();
+    }
   }
 
   async encrypt() {
-    if (this.form.valid) {
-      const encryptionKey = this.authService.getEncryptionKey();
-      if (encryptionKey) {
-        const encryptedString = await encryptString(
-          this.form.value.userinput,
-          encryptionKey
-        );
+    try {
+      if (this.form.valid) {
+        const encryptionKey = this.authService.getEncryptionKey();
+        if (encryptionKey) {
+          const encryptedString = await encryptString(
+            this.form.value.userinput,
+            encryptionKey
+          );
 
-        await this.dataStorageService.saveEncryptedString(encryptedString);
-        this.decryptedString = '';
-        this.encryptedString = encryptedString;
+          this.ngxSpinnerservice.show();
+          await this.dataStorageService.saveEncryptedString(encryptedString);
+          this.ngxSpinnerservice.hide();
+          this.decryptedString = '';
+          this.encryptedString = encryptedString;
+        }
       }
+    } catch (err) {
+      this.ngxSpinnerservice.hide();
     }
   }
 

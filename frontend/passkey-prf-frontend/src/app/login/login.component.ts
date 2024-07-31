@@ -1,27 +1,41 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule],
+  imports: [FormsModule, CommonModule, RouterModule, NgxSpinnerModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent implements OnDestroy {
-  constructor(private authService: AuthService) {
+export class LoginComponent implements OnDestroy, OnInit {
+  subscription: Subscription = new Subscription();
+
+  constructor(
+    private authService: AuthService,
+    private ngxSpinnerservice: NgxSpinnerService
+  ) {
     this.setUpsigninWithAutofill();
+  }
+  ngOnInit(): void {
+    this.subscription = this.authService
+      .getAutofillSignInVerificationStartedObservable()
+      .subscribe(() => this.ngxSpinnerservice.show());
   }
   ngOnDestroy(): void {
     this.authService.signupOrSigninAbort();
+    this.subscription.unsubscribe();
   }
 
   async setUpsigninWithAutofill() {
     try {
       await this.authService.signinWithAutofill();
+      this.ngxSpinnerservice.hide();
     } catch (error: any) {
       if (
         error &&
@@ -31,6 +45,7 @@ export class LoginComponent implements OnDestroy {
           error.title === 'signal is aborted without reason'
         )
       ) {
+        this.ngxSpinnerservice.hide();
         this.setUpsigninWithAutofill();
       }
     }
@@ -39,9 +54,10 @@ export class LoginComponent implements OnDestroy {
   async onSubmit(form: NgForm) {
     try {
       if (form.valid) {
+        this.ngxSpinnerservice.show();
         // Register the token with the end-user's device.
         await this.authService.signinWithAlias(form.value.email);
-
+        this.ngxSpinnerservice.hide();
         //if (error) {
         //  this.ui();
         //}
@@ -83,6 +99,7 @@ export class LoginComponent implements OnDestroy {
       */
       }
     } catch (err) {
+      this.ngxSpinnerservice.hide();
       console.log(err);
       this.setUpsigninWithAutofill();
     }

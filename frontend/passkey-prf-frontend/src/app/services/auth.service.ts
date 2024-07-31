@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Observable, Subject } from 'rxjs';
 import { PasswordlessService } from './passwordless.service';
 import { Router } from '@angular/router';
-import { cloneDeep } from 'lodash';
 import { generateAESKeyFromWebAuthnKey } from './../utility/cryptoHelper';
 
 const prf_salt = 'passwordless-login';
@@ -14,6 +13,11 @@ type SignupBeginResponse = {
   token: string;
   userId: string;
 };
+
+enum SignUpStatusValues {
+  SIGNUP_STARTED,
+  SIGNUP_ENDED,
+}
 
 type SignupCompleteResponse = {
   status: string;
@@ -26,6 +30,8 @@ type SignupCompleteResponse = {
 export class AuthService {
   private authToken: string | null = null;
   private encryptionKey: CryptoKey | null = null;
+  private autofillSignInVerificationStarted = new Subject<boolean>();
+  private signUpStatus = new Subject<SignUpStatusValues>();
 
   constructor(
     private http: HttpClient,
@@ -43,6 +49,7 @@ export class AuthService {
 
   async signup(name: string, email: string) {
     try {
+      this.signUpStatus.next(SignUpStatusValues.SIGNUP_STARTED);
       const { token: registrationToken, userId } = await lastValueFrom(
         this.http.post<SignupBeginResponse>(
           `${environment.serverBaseUrl}/api/v1/signup/begin`,
@@ -69,9 +76,10 @@ export class AuthService {
       if (prfKey) {
         this.encryptionKey = await generateAESKeyFromWebAuthnKey(prfKey);
       }
-
+      this.signUpStatus.next(SignUpStatusValues.SIGNUP_ENDED);
       this.router.navigate(['/home']);
     } catch (err) {
+      this.signUpStatus.next(SignUpStatusValues.SIGNUP_ENDED);
       console.log(err);
     }
   }
@@ -82,7 +90,7 @@ export class AuthService {
     );
 
     if (error) throw error;
-
+    this.autofillSignInVerificationStarted.next(true);
     await this.verifySignin(token, prfKey);
   }
 
@@ -94,6 +102,7 @@ export class AuthService {
 
     if (error) throw error;
 
+    this.autofillSignInVerificationStarted.next(true);
     await this.verifySignin(token, prfKey);
   }
 
@@ -122,5 +131,13 @@ export class AuthService {
     this.authToken = null;
     this.encryptionKey = null;
     this.router.navigate(['/login']);
+  }
+
+  getAutofillSignInVerificationStartedObservable(): Observable<boolean> {
+    return this.autofillSignInVerificationStarted.asObservable();
+  }
+
+  getSignUpStatusObservable(): Observable<SignUpStatusValues> {
+    return this.signUpStatus.asObservable();
   }
 }
