@@ -15,15 +15,15 @@ export class DataStorageService {
     const authToken = this.authService.getAuthToken();
     if (!authToken) return;
 
-    this.http
-      .patch(
+    return await lastValueFrom(
+      this.http.patch(
         `${environment.serverBaseUrl}/api/v1/encryptedData`,
         { encryptedData: value },
         {
           headers: { Authorization: 'Bearer ' + authToken },
         }
       )
-      .subscribe();
+    );
   }
 
   async getEncryptedString() {

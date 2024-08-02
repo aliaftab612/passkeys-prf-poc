@@ -32,7 +32,6 @@ export async function generateAESKeyFromWebAuthnKey(
     // Return the derived AES key
     return aesKey;
   } catch (error) {
-    console.error('Error generating AES key:', error);
     throw error;
   }
 }

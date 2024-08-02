@@ -5,11 +5,22 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { Subscription } from 'rxjs';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule, NgxSpinnerModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    RouterModule,
+    NgxSpinnerModule,
+    ToastModule,
+    ButtonModule,
+  ],
+  providers: [MessageService],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -18,7 +29,8 @@ export class LoginComponent implements OnDestroy, OnInit {
 
   constructor(
     private authService: AuthService,
-    private ngxSpinnerservice: NgxSpinnerService
+    private ngxSpinnerservice: NgxSpinnerService,
+    private msgService: MessageService
   ) {
     this.setUpsigninWithAutofill();
   }
@@ -37,16 +49,13 @@ export class LoginComponent implements OnDestroy, OnInit {
       await this.authService.signinWithAutofill();
       this.ngxSpinnerservice.hide();
     } catch (error: any) {
+      this.generateErrorMessage(error);
       if (
-        error &&
-        !(
-          error.errorCode === 'unknown' &&
-          error.from === 'client' &&
-          error.title === 'signal is aborted without reason'
-        )
+        error?.errorCode !== 'unknown' &&
+        error?.title !== 'signal is aborted without reason'
       ) {
-        this.ngxSpinnerservice.hide();
         this.setUpsigninWithAutofill();
+        this.ngxSpinnerservice.hide();
       }
     }
   }
@@ -98,10 +107,28 @@ export class LoginComponent implements OnDestroy, OnInit {
       console.log(credential.getClientExtensionResults());
       */
       }
-    } catch (err) {
+    } catch (err: any) {
       this.ngxSpinnerservice.hide();
-      console.log(err);
+      this.generateErrorMessage(err);
       this.setUpsigninWithAutofill();
+    }
+  }
+
+  generateErrorMessage(err: any) {
+    if (!err?.errorCode) {
+      if (err?.name === 'HttpErrorResponse' && err?.error?.status === 'fail') {
+        this.showError(err.message + ' | ' + err.error.message);
+      } else {
+        this.showError(err.message);
+      }
+    } else if (
+      err?.errorCode === 'unknown' &&
+      !err?.title.startsWith(
+        'The operation either timed out or was not allowed.'
+      ) &&
+      !err.title.startsWith('signal is aborted without reason')
+    ) {
+      this.showError('PasswordLess Service Error : ' + err.title);
     }
   }
 
@@ -112,5 +139,14 @@ export class LoginComponent implements OnDestroy, OnInit {
       bufView[i] = str.charCodeAt(i);
     }
     return buf;
+  }
+
+  showError(error: string) {
+    this.msgService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error,
+      life: 3500,
+    });
   }
 }

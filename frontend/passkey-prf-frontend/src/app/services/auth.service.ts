@@ -80,7 +80,7 @@ export class AuthService {
       this.router.navigate(['/home']);
     } catch (err) {
       this.signUpStatus.next(SignUpStatusValues.SIGNUP_ENDED);
-      console.log(err);
+      throw err;
     }
   }
 
@@ -102,7 +102,6 @@ export class AuthService {
 
     if (error) throw error;
 
-    this.autofillSignInVerificationStarted.next(true);
     await this.verifySignin(token, prfKey);
   }
 

@@ -5,13 +5,24 @@ import { AuthService } from '../services/auth.service';
 import { encryptString, decryptString } from '../utility/cryptoHelper';
 import { DataStorageService } from '../services/data-storage.service';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule, NgxSpinnerModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    NgxSpinnerModule,
+    NgxSpinnerModule,
+    ToastModule,
+    ButtonModule,
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
+  providers: [MessageService],
 })
 export class HomeComponent implements OnInit {
   @ViewChild('form')
@@ -24,7 +35,8 @@ export class HomeComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private dataStorageService: DataStorageService,
-    private ngxSpinnerservice: NgxSpinnerService
+    private ngxSpinnerservice: NgxSpinnerService,
+    private msgService: MessageService
   ) {}
 
   ngOnInit() {
@@ -45,6 +57,7 @@ export class HomeComponent implements OnInit {
       this.encryptedString = await this.dataStorageService.getEncryptedString();
       this.ngxSpinnerservice.hide();
     } catch (err) {
+      this.generateErrorMessage(err);
       this.ngxSpinnerservice.hide();
     }
   }
@@ -68,17 +81,22 @@ export class HomeComponent implements OnInit {
       }
     } catch (err) {
       this.ngxSpinnerservice.hide();
+      this.generateErrorMessage(err);
     }
   }
 
   async decrypt(encryptedString: string) {
-    const encryptionKey = this.authService.getEncryptionKey();
+    try {
+      const encryptionKey = this.authService.getEncryptionKey();
 
-    if (encryptionKey) {
-      this.decryptedString = await decryptString(
-        encryptedString,
-        encryptionKey
-      );
+      if (encryptionKey) {
+        this.decryptedString = await decryptString(
+          encryptedString,
+          encryptionKey
+        );
+      }
+    } catch (err: any) {
+      this.generateErrorMessage(err);
     }
   }
 
@@ -89,5 +107,22 @@ export class HomeComponent implements OnInit {
   resetClick() {
     this.inputValue = '';
     this.decryptedString = '';
+  }
+
+  generateErrorMessage(err: any) {
+    if (err?.name === 'HttpErrorResponse' && err?.error?.status === 'fail') {
+      this.showError(err.message + ' | ' + err.error.message);
+    } else {
+      this.showError('AES Encryption or Decryption Error : ' + err.message);
+    }
+  }
+
+  showError(error: string) {
+    this.msgService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error,
+      life: 3500,
+    });
   }
 }

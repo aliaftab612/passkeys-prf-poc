@@ -203,7 +203,6 @@ export class PasswordlessService {
           title:
             'Failed to create credential (navigator.credentials.create returned null)',
         };
-        console.error(error);
         return { error };
       }
 
@@ -219,9 +218,6 @@ export class PasswordlessService {
         errorCode: 'unknown',
         title: errorMessage,
       };
-      console.error(caughtError);
-      console.error(error);
-
       return { error };
     }
   }
@@ -453,9 +449,6 @@ export class PasswordlessService {
         errorCode: 'unknown',
         title: errorMessage,
       };
-      console.error(caughtError);
-      console.error(error);
-
       return { error };
     }
   }
