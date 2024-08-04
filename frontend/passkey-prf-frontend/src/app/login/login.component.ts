@@ -50,10 +50,7 @@ export class LoginComponent implements OnDestroy, OnInit {
       this.ngxSpinnerservice.hide();
     } catch (error: any) {
       this.generateErrorMessage(error);
-      if (
-        error?.errorCode !== 'unknown' &&
-        error?.title !== 'signal is aborted without reason'
-      ) {
+      if (error?.errorCode !== 'AbortError') {
         this.setUpsigninWithAutofill();
         this.ngxSpinnerservice.hide();
       }
@@ -122,11 +119,7 @@ export class LoginComponent implements OnDestroy, OnInit {
         this.showError(err.message);
       }
     } else if (
-      err?.errorCode === 'unknown' &&
-      !err?.title.startsWith(
-        'The operation either timed out or was not allowed.'
-      ) &&
-      !err.title.startsWith('signal is aborted without reason')
+      !(err?.errorCode === 'NotAllowedError' || err?.errorCode === 'AbortError')
     ) {
       this.showError('PasswordLess Service Error : ' + err.title);
     }

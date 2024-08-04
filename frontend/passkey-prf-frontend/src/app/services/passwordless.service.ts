@@ -215,7 +215,7 @@ export class PasswordlessService {
       const errorMessage = this.getErrorMessage(caughtError);
       const error = {
         from: 'client',
-        errorCode: 'unknown',
+        errorCode: caughtError?.name ?? 'unknown',
         title: errorMessage,
       };
       return { error };
@@ -446,7 +446,7 @@ export class PasswordlessService {
       const errorMessage = this.getErrorMessage(caughtError);
       const error = {
         from: 'client',
-        errorCode: 'unknown',
+        errorCode: caughtError?.name ?? 'unknown',
         title: errorMessage,
       };
       return { error };
