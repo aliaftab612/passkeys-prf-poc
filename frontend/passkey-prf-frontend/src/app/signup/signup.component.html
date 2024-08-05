@@ -50,7 +50,7 @@
                 placeholder="Email"
                 required
                 ngModel
-                email
+                appEmailValidator
                 name="email"
                 #email="ngModel"
                 class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -62,7 +62,7 @@
                 <p class="mt-1 text-xs">* This field is required.</p>
               </div>
               <div
-                *ngIf="email.errors?.['email'] && email.touched"
+                *ngIf="email.errors?.['invalidEmail'] && email.touched"
                 style="color: red"
               >
                 <p class="mt-1 text-xs">* Invalid Email Address.</p>

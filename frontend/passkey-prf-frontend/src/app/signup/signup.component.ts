@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { EmailValidatorDirective } from '../directives/emailValidator';
 
 @Component({
   selector: 'app-signup',
@@ -19,6 +20,7 @@ import { ButtonModule } from 'primeng/button';
     NgxSpinnerModule,
     ToastModule,
     ButtonModule,
+    EmailValidatorDirective,
   ],
   providers: [MessageService],
   templateUrl: './signup.component.html',

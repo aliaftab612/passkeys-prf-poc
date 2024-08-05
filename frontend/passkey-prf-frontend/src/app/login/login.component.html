@@ -28,7 +28,7 @@
                 placeholder="Email"
                 required
                 ngModel
-                email
+                appEmailValidator
                 name="email"
                 autocomplete="email webauthn"
                 #email="ngModel"
@@ -41,7 +41,7 @@
                 <p class="mt-1 text-xs">* This field is required.</p>
               </div>
               <div
-                *ngIf="email.errors?.['email'] && email.touched"
+                *ngIf="email.errors?.['invalidEmail'] && email.touched"
                 style="color: red"
               >
                 <p class="mt-1 text-xs">* Invalid Email Address.</p>
